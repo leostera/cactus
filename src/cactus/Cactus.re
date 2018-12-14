@@ -107,7 +107,7 @@ let execute_build = project =>
 let build = () => {
   let began_at = Unix.gettimeofday();
 
-  print_string({j| 🌵 Compiling project... |j});
+  print_string({j|🌵 Compiling project... |j});
   print_newline();
   let project = "./" |> read_project;
   switch (project) {
@@ -117,6 +117,6 @@ let build = () => {
 
   let finished_at = Unix.gettimeofday();
   let delta = finished_at -. began_at;
-  print_string({j| 🌮 Done in |j} ++ Printf.sprintf("%.2f", delta) ++ "s");
+  print_string({j|🌮 Done in |j} ++ Printf.sprintf("%.2f", delta) ++ "s");
   print_newline();
 };
