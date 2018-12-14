@@ -40,7 +40,7 @@ under a `_public` folder:
 ```sh
 my/website λ cactus build
 🌵 Compiling project...
-🌮 Done!
+🌮 Done in 0.01s
 
 my/website  λ tree
 .
