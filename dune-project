@@ -1,4 +1,3 @@
-(lang dune 1.6)
-(name repub)
-(version 0.0.1)
+(lang dune 1.5)
+(name cactus)
 (using fmt 1.0)

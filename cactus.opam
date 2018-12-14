@@ -1,0 +1,19 @@
+opam-version: "2.0"
+name: "cactus"
+version: "0.1"
+synopsis: "A document compiler"
+maintainer: "Leandro Ostera <leandro@ostera.io>"
+authors: "Leandro Ostera <leandro@ostera.io>"
+license: "MIT"
+homepage: "https//github.com/ostera/cactus"
+bug-reports: "https//github.com/ostera/cactus/issues"
+depends: [
+  "cmdliner"
+  "markup"
+  "omd"
+  "parsexp"
+
+  "dune"
+  "reason"
+  "refmterr"
+]

@@ -1,0 +1,7 @@
+lib: [
+  "_build/install/default/lib/cactus/META" {"META"}
+  "_build/install/default/lib/cactus/opam" {"opam"}
+]
+bin: [
+  "_build/install/default/bin/cactus" {"cactus"}
+]
