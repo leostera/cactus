@@ -105,6 +105,8 @@ let execute_build = project =>
 
 /* TODO(@ostera): pass in root as a pasameter */
 let build = () => {
+  let began_at = Unix.gettimeofday();
+
   print_string({j| 🌵 Compiling project... |j});
   print_newline();
   let project = "./" |> read_project;
@@ -112,6 +114,9 @@ let build = () => {
   | Ok(project) => project |> plan_build |> execute_build(project)
   | Error(err) => err |> Errors.to_string |> print_string
   };
-  print_string({j| 🌮 Done! |j});
+
+  let finished_at = Unix.gettimeofday();
+  let delta = finished_at -. began_at;
+  print_string({j| 🌮 Done in |j} ++ Printf.sprintf("%.2f", delta) ++ "s");
   print_newline();
 };
