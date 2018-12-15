@@ -35,11 +35,10 @@ let find_sites = root => {
   crawl([], root);
 };
 
-let read_project = root =>
+let read_project = (root, output_dir) =>
   if (Model.project_filename |> Filename.concat(root) |> Sys.file_exists) {
     /* TODO(@ostera): read cactus-project to get the lang version and name */
     let name = "words";
-    let output_dir = Filename.concat(root, "_public");
     Ok(Model.{root, name, output_dir, sites: find_sites(root)});
   } else {
     Error(`No_project_file(root));
@@ -119,12 +118,12 @@ let execute_build = (project, cunits) => {
 };
 
 /* TODO(@ostera): pass in root as a pasameter */
-let build = () => {
+let build = (_flags, project_root, output_dir) => {
   let began_at = Unix.gettimeofday();
 
   Logs.app(m => m({j|🌵 Compiling project... |j}));
 
-  let project = "./" |> read_project;
+  let project = read_project(project_root, output_dir);
   switch (project) {
   | Ok(project) => project |> plan_build |> execute_build(project)
   | Error(err) => Logs.err(m => err |> Errors.to_string |> m("ERROR: %s"))

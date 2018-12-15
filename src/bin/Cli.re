@@ -47,16 +47,49 @@ module SharedOpts = {
 
 module Build = {
   let cmd = {
+    let project_root = {
+      let doc = "Root directory from where to start looking for nested site
+      files.";
+      Arg.(
+        value & opt(file, "./") & info(["project-root"], ~docv="ROOT", ~doc)
+      );
+    };
+
+    let output_dir = {
+      let doc = "Output directory.";
+      Arg.(
+        value
+        & opt(file, "./_public")
+        & info(["o", "output-dir"], ~docv="OUTDIR", ~doc)
+      );
+    };
+
     let doc = "build your project";
     let exits = Term.default_exits;
     let man = [
       `S(Manpage.s_description),
-      `P({j|asdf|j}),
+      `P(
+        {j|Cactus will look for a cactus-project file in the \$ROOT folder
+        (defaults to the current folder) and scan for site files to make a
+        build plan, and execute it.|j},
+      ),
+      `P(
+        {j|It will compile all of the markdown files it finds into .html
+      files, copying the structure in which they are laid out in the file
+      system.|j},
+      ),
+      `P(
+        {j|That is, a file located in \$ROOT/pages/about-me.md will end up as
+      \$OUTDIR/pages/about-me.html — as long as there is a SITE file in
+      \$ROOT/pages.|j},
+      ),
       `Blocks(SharedOpts.help),
     ];
 
     (
-      Term.(const(Cactus.build) $ SharedOpts.flags),
+      Term.(
+        const(Cactus.build) $ SharedOpts.flags $ project_root $ output_dir
+      ),
       Term.info("build", ~doc, ~sdocs=Manpage.s_common_options, ~exits, ~man),
     );
   };
