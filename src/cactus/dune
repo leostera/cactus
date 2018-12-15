@@ -1,4 +1,4 @@
 (library
   (name cactus)
   (modules Cactus Compiler Errors)
-  (libraries base model omd))
+  (libraries logs fmt logs.fmt fmt.tty base model omd))

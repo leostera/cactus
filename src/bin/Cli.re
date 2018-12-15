@@ -1,6 +1,22 @@
 open Cmdliner;
 
+type verbosity =
+  | Quiet
+  | Normal
+  | Verbose;
+
 module SharedOpts = {
+  let setup_logger = (debug, verbosity) => {
+    Fmt_tty.setup_std_outputs();
+    Logs.set_reporter(Logs_fmt.reporter());
+    let verbosity' =
+      switch (verbosity) {
+      | Quiet => None
+      | Normal => Some(Logs.App)
+      | Verbose => debug ? Some(Logs.Debug) : Some(Logs.Info)
+      };
+    Logs.set_level(verbosity');
+  };
   let help = [
     `S(Manpage.s_common_options),
     `P("These options are common to all commands."),
@@ -8,8 +24,25 @@ module SharedOpts = {
     `P("Use `$(mname) $(i,COMMAND) --help' for help on a single command."),
     `Noblank,
     `S(Manpage.s_bugs),
-    `P("Check bug reports at https://github.com/ostera/cactus."),
+    `P("Check bug reports at https://github.com/ostera/bsdoc."),
   ];
+  let flags = {
+    let docs = Manpage.s_common_options;
+    let debug = {
+      let doc = "Give only debug output.";
+      Arg.(value & flag & info(["debug"], ~docs, ~doc));
+    };
+
+    let verb = {
+      let doc = "Suppress informational output.";
+      let quiet = (Quiet, Arg.info(["q", "quiet"], ~docs, ~doc));
+      let doc = "Give verbose output.";
+      let verbose = (Verbose, Arg.info(["v", "verbose"], ~docs, ~doc));
+      Arg.(last & vflag_all([Normal], [quiet, verbose]));
+    };
+
+    Term.(const(setup_logger) $ debug $ verb);
+  };
 };
 
 module Build = {
@@ -23,7 +56,7 @@ module Build = {
     ];
 
     (
-      Term.(const(Cactus.build) $ const()),
+      Term.(const(Cactus.build) $ SharedOpts.flags),
       Term.info("build", ~doc, ~sdocs=Manpage.s_common_options, ~exits, ~man),
     );
   };

@@ -9,9 +9,9 @@ homepage: "https//github.com/ostera/cactus"
 bug-reports: "https//github.com/ostera/cactus/issues"
 depends: [
   "cmdliner"
-  "markup"
   "omd"
-  "parsexp"
+  "logs"
+  "fmt"
 
   "dune"
   "reason"
