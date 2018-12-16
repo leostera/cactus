@@ -15,5 +15,4 @@ depends: [
 
   "dune"
   "reason"
-  "refmterr"
 ]
