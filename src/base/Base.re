@@ -46,27 +46,13 @@ module OS = {
     content;
   };
 
-  let mkdirp = path => {
-    let rec build_paths = (splits, acc) =>
-      switch (splits) {
-      | [] => acc |> List.rev
-      | [x, ...xs] =>
-        switch (acc) {
-        | [] => build_paths(xs, [x, ...acc])
-        | [prev, ..._] =>
-          build_paths(xs, [Filename.concat(prev, x), ...acc])
-        }
-      };
-
-    let split_char = Filename.dir_sep.[0];
-    let splits = path |> String.split_on_char(split_char);
-
-    build_paths(splits, [])
-    |> List.iter(mkpath =>
-         switch (Sys.is_directory(mkpath)) {
-         | exception _ => Unix.mkdir(mkpath, 0o777)
-         | _ => ()
-         }
-       );
-  };
+  let rec mkdirp = path =>
+    switch (Unix.stat(path)) {
+    | exception (Unix.Unix_error(Unix.ENOENT, "stat", _)) =>
+      let parent = Filename.dirname(path);
+      mkdirp(parent);
+      Unix.mkdir(path, 0o777);
+    | exception _ => ()
+    | _ => ()
+    };
 };
