@@ -117,7 +117,6 @@ let execute_build = (project, cunits) => {
   });
 };
 
-/* TODO(@ostera): pass in root as a pasameter */
 let build = (_flags, project_root, output_dir) => {
   let began_at = Unix.gettimeofday();
 
