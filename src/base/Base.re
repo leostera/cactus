@@ -27,24 +27,62 @@ module Result = {
 };
 
 module OS = {
-  let writefile = (path, contents) => {
-    let chan = open_out(path);
-    output_string(chan, contents);
-    flush(chan);
-    close_out(chan);
-  };
+  let file_exists = path =>
+    path
+    |> Lwt_unix.stat
+    |> Lwt.map(s =>
+         Unix.(
+           switch (s.st_kind) {
+           | S_REG => true
+           | _ => false
+           }
+         )
+       );
 
-  let readfile = path => {
-    let chan = open_in(path);
-    let rec read = acc =>
-      switch (chan |> input_line) {
-      | exception End_of_file => acc |> List.rev
-      | line => read([line, ...acc])
-      };
-    let content = read([]) |> List.fold_left((++), "\n");
-    close_in(chan);
-    content;
-  };
+  let writefile = (path, contents) =>
+    Lwt_io.with_file(~mode=Lwt_io.Output, path, chan =>
+      Lwt_io.write(chan, contents)
+    );
+
+  let concatall = (~init="", sep, str) =>
+    Lwt_stream.fold((a, b) => a ++ sep ++ b, str, init);
+
+  let readlines = chan => chan |> Lwt_io.read_lines |> concatall("\n");
+
+  let readfile = path =>
+    Lwt_io.with_file(~mode=Lwt_io.Input, path, readlines);
+
+  let isdir = path =>
+    Lwt.catch(
+      () =>
+        path
+        |> Lwt_unix.stat
+        |> Lwt.map(s =>
+             Unix.(
+               switch (s.st_kind) {
+               | S_DIR => true
+               | _ => false
+               }
+             )
+           ),
+      _ => Lwt.return(false),
+    );
+
+  let rec readdir = path =>
+    Lwt_unix.files_of_directory(path)
+    |> Lwt_stream.map_s(name => {
+         let relpath = Filename.concat(path, name);
+         isdir(relpath)
+         |> Lwt.map(v =>
+              switch (v, name) {
+              | (true, ".")
+              | (true, "..") => Lwt_stream.of_list([])
+              | (true, _) => readdir(relpath)
+              | (_, _) => Lwt_stream.of_list([relpath])
+              }
+            );
+       })
+    |> Lwt_stream.concat;
 
   let mkdirp = path => {
     let rec build_paths = (splits, acc) =>
@@ -62,11 +100,8 @@ module OS = {
     let splits = path |> String.split_on_char(split_char);
 
     build_paths(splits, [])
-    |> List.iter(mkpath =>
-         switch (Sys.is_directory(mkpath)) {
-         | exception _ => Unix.mkdir(mkpath, 0o777)
-         | _ => ()
-         }
+    |> Lwt_list.iter_s(mkpath =>
+         Lwt.catch(() => Lwt_unix.mkdir(mkpath, 0o777), _ => Lwt.return())
        );
   };
 };

@@ -1,8 +1,12 @@
-let compile: (Model.project, Model.compilation_unit) => unit =
+let compile: (Model.project, Model.compilation_unit) => Lwt.t(unit) =
   (project, cunit) => {
     let final_out_path = Filename.concat(project.output_dir, cunit.output);
-    Base.OS.readfile(cunit.input)
-    |> Omd.of_string
-    |> Omd.to_html
-    |> Base.OS.writefile(final_out_path);
+    Base.OS.(
+      Lwt.(
+        readfile(cunit.input)
+        |> map(Omd.of_string)
+        |> map(Omd.to_html)
+        >>= writefile(final_out_path)
+      )
+    );
   };
