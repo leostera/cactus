@@ -5,3 +5,6 @@ lib: [
 bin: [
   "_build/install/default/bin/cactus" {"cactus"}
 ]
+doc: [
+  "_build/install/default/doc/cactus/README.md"
+]

@@ -4,7 +4,27 @@ Cactus is a reaction to the amount of static site generators out there
 that enforce their structures on you. Cactus does very little. If you open it
 up, you'll find it's full of water.
 
-### Getting Started
+### Installing
+
+`cactus` requires a working OCaml toolchain with opam. If you have it, you can
+just pin the repository:
+
+```sh
+opam pin add cactus https://github.com/ostera/cactus.git
+```
+
+If you'd rather run from source you can also `git clone` and `make install`:
+
+```sh
+git clone https://github.com/ostera/cactus path/to/projects
+cd path/to/projects
+make install
+```
+
+Worht noting that `make install` just calls `dune install`.
+
+
+## Getting Started
 
 Cactus works in a very simple way. In fact it's almost silly how simple it is.
 If you put a `cactus-project` file on the root of your project, cactus will look

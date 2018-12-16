@@ -2,6 +2,10 @@
 deps:
 	opam install --deps-only .
 
+.PHONY: install
+install:
+	dune install
+
 .PHONY: build
 build:
 	dune build

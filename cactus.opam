@@ -16,3 +16,6 @@ depends: [
   "dune"
   "reason"
 ]
+build: [make "build"]
+install: [make "install"]
+
