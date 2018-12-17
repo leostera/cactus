@@ -1,0 +1,10 @@
+(library
+  (name compiler)
+  (libraries
+    base
+    model
+    markup
+    omd
+
+    logs
+    ))

@@ -59,7 +59,7 @@ module Build = {
       let doc = "Output directory.";
       Arg.(
         value
-        & opt(file, "./_public")
+        & opt(string, "./_public")
         & info(["o", "output-dir"], ~docv="OUTDIR", ~doc)
       );
     };

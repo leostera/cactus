@@ -9,12 +9,14 @@ homepage: "https//github.com/ostera/cactus"
 bug-reports: "https//github.com/ostera/cactus/issues"
 depends: [
   "cmdliner"
-  "omd"
-  "logs"
   "fmt"
+  "logs"
+  "markup"
+  "ocamlgraph"
+  "omd"
 
-  "dune"
-  "reason"
+  "dune" {build}
+  "reason" {build}
 ]
 build: [make "build"]
 install: [make "install"]

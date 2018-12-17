@@ -1,4 +1,4 @@
 (executable
-  (name Cli)
+  (name Main)
   (public_name cactus)
   (libraries cactus cmdliner))

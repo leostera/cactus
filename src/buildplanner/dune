@@ -1,0 +1,12 @@
+(library
+  (name buildplanner)
+  (libraries
+    base
+
+    model
+    parser
+    compiler
+    buildgraph
+
+    logs
+    ))

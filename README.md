@@ -10,12 +10,14 @@ up, you'll find it's full of water.
 just pin the repository:
 
 ```sh
+opam pin --dev omd
 opam pin add cactus https://github.com/ostera/cactus.git
 ```
 
 If you'd rather run from source you can also `git clone` and `make install`:
 
 ```sh
+opam pin --dev omd
 git clone https://github.com/ostera/cactus path/to/projects
 cd path/to/projects
 make install

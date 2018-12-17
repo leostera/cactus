@@ -5,5 +5,7 @@ let to_string = x =>
       "Could not find a project file at %s",
       Filename.concat(pwd, Model.project_filename),
     )
+  | `Not_implemented(name) =>
+    Printf.sprintf("This feature has not been implemented yet: %s", name)
   | _ => "Unknown error"
   };

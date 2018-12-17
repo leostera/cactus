@@ -39,9 +39,9 @@ module OS = {
     let rec read = acc =>
       switch (chan |> input_line) {
       | exception End_of_file => acc |> List.rev
-      | line => read([line, ...acc])
+      | line => read([line, "\n", ...acc])
       };
-    let content = read([]) |> List.fold_left((++), "\n");
+    let content = read([]) |> List.fold_left((++), "");
     close_in(chan);
     content;
   };
