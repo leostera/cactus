@@ -20,7 +20,22 @@ let build = (_flags, project_root, output_dir) => {
     Logs.debug(m => m("About to process %d compilation units...", size));
 
     let compile = Compiler.Exec.compile(project);
-    Buildgraph.execute(compile, graph);
+
+    if (size > 50) {
+      Logs.debug(m => m("Spinning up worker pool..."));
+      let thread_count = 4;
+      let (pool, pool_done) = Nproc.create(thread_count);
+      let submit = Nproc.submit(pool, ~f=compile);
+      Lwt.(
+        Buildgraph.execute_p(submit, compile, graph)
+        >>= (_ => Nproc.close(pool))
+        >>= (_ => pool_done)
+        |> Lwt_main.run
+      );
+      Logs.debug(m => m("Finished parallel execution."));
+    } else {
+      Buildgraph.execute(compile, graph);
+    };
 
     Logs.debug(m => {
       let finished_at = Unix.gettimeofday();

@@ -5,7 +5,6 @@ type compile_target = {
 
 type compilation_unit = [ | `Create_dir(string) | `Compile(compile_target)];
 
-/* TODO(@ostera): remove project dependency */
 let compile = (output_dir, cunit) => {
   let final_out_path = Filename.concat(output_dir, cunit.output);
   switch (

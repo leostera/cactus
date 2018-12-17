@@ -12,8 +12,10 @@ depends: [
   "fmt"
   "logs"
   "markup"
+  "nproc"
   "ocamlgraph"
   "omd"
+  "conf-libev"
 
   "dune" {build}
   "reason" {build}

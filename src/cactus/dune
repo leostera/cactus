@@ -12,4 +12,5 @@
     fmt.tty
     logs
     logs.fmt
+    nproc
     ))
