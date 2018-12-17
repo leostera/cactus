@@ -1,6 +1,6 @@
 opam-version: "2.0"
 name: "cactus"
-version: "0.1"
+version: "0.2"
 synopsis: "A document compiler"
 maintainer: "Leandro Ostera <leandro@ostera.io>"
 authors: "Leandro Ostera <leandro@ostera.io>"
@@ -20,4 +20,3 @@ depends: [
 ]
 build: [make "build"]
 install: [make "install"]
-
