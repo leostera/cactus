@@ -2,8 +2,7 @@ let compile: (Model.project, Rules.compilation_unit) => unit =
   (project, cunit) =>
     switch (cunit) {
     | `Create_dir(path) =>
-      let dir = Filename.concat(project.output_dir, path);
-      Logs.info(m => m("Creating dir: %s", dir));
+      Logs.info(m => m("Creating dir: %s", path));
       Rules.mkdir(path);
     | `Compile(target) =>
       Logs.info(m =>
