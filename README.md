@@ -62,7 +62,7 @@ under a `_public` folder:
 ```sh
 my/website λ cactus build
 🌵 Compiling project...
-🌮 Done in 0.01s
+🌮 Done in 0.002s
 
 my/website  λ tree
 .
