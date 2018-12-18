@@ -1,10 +1,4 @@
 module L = {
-  let rec pp = (f, ls) =>
-    switch (ls) {
-    | [] => "[]"
-    | [x, ...xs] => Printf.sprintf("[ %s, %s ]", f(x), pp(f, xs))
-    };
-
   let buckets: (int, list('a)) => list(list('a)) =
     (count, ls) => {
       let len = ls |> List.length |> float_of_int;
