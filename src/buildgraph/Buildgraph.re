@@ -12,13 +12,31 @@ let size = plan => {
   count(0, plan);
 };
 
-let rec execute = (compiler, plan) =>
-  switch (plan) {
-  | Leaf(target) => compiler(target)
-  | Node(target, children) =>
-    compiler(target);
-    children |> List.iter(execute(compiler));
-  };
+let execute = (compiler, plan) => {
+  open Lwt.Infix;
+  let rec exec = (acc, p) =>
+    switch (p) {
+    | Leaf(target) => Lwt.return([compiler(target), ...acc])
+    | Node(target, ts) =>
+      let (waiter, awakener) = Lwt.wait();
+      /*
+         list(Lwt.t(list(Lwt.t(unit))))
+         Lwt.t(list(Lwt.t(unit)))
+       */
+      Lwt.async(() =>
+        compiler(target)
+        >>= (
+          _ =>
+            ts
+            |> List.map(exec(acc))
+            |> Lwt_list.fold_left_s((a, b) => b >|= (c => c @ a), [])
+            >|= Lwt.wakeup_later(awakener)
+        )
+      );
+      waiter;
+    };
+  exec([], plan) >>= Lwt.join;
+};
 
 let execute_p = (~jobs, submit, compiler, plan) => {
   let rec exec = (acc, p) =>

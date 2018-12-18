@@ -23,17 +23,19 @@ let build = (_flags, project_root, output_dir, jobs) => {
 
     if (size > 50 && jobs > 0) {
       Logs.debug(m => m("Spinning up worker pool..."));
-      let (pool, pool_done) = Nproc.create(jobs);
-      let submit = Nproc.submit(pool, ~f=List.iter(compile));
-      Lwt.(
-        Buildgraph.execute_p(submit, compile, graph, ~jobs)
-        >>= (_ => Nproc.close(pool))
-        >>= (_ => pool_done)
-        |> Lwt_main.run
-      );
+      let (pool, _pool_done) = Nproc.create(jobs);
+      let _submit = Nproc.submit(pool, ~f=List.map(compile));
+      /*
+       Lwt.(
+         Buildgraph.execute_p(submit, compile, graph, ~jobs)
+         >>= (_ => Nproc.close(pool))
+         >>= (_ => pool_done)
+         |> Lwt_main.run
+       );
+       */
       Logs.debug(m => m("Finished parallel execution."));
     } else {
-      Buildgraph.execute(compile, graph);
+      Buildgraph.execute(compile, graph) |> Lwt_main.run;
     };
 
     Logs.debug(m => {
