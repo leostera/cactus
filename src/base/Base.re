@@ -52,16 +52,29 @@ module OS = {
   open Bos.OS;
   module R = Rresult.R;
 
-  let isdir = path => Dir.exists(path) |> R.ignore_error(~use=_ => false);
+  let (<|>) = (a, b) =>
+    switch (a) {
+    | Ok(x) => x
+    | _ => b
+    };
 
-  let readdir = path =>
-    Dir.contents(~rel=true, path) |> R.ignore_error(~use=_ => []);
+  let exists = path => File.exists(path) <|> false;
+
+  let isdir = path => Dir.exists(path) <|> false;
+
+  let readdir = (~rel=false, path) =>
+    Dir.contents(~rel, path) <|> [] |> List.map(Fpath.normalize);
+
+  let splitdir = contents => {
+    let (dirs, files) =
+      contents |> List.partition(name => name |> Dir.exists <|> false);
+    (`Dirs(dirs |> List.map(Fpath.to_dir_path)), `Files(files));
+  };
 
   let writefile: (Fpath.t, string) => unit =
     (path, content) => File.write(~mode=0o777, path, content) |> ignore;
 
-  let readfile: Fpath.t => string =
-    path => File.read(path) |> R.ignore_error(~use=_ => "");
+  let readfile: Fpath.t => string = path => File.read(path) <|> "";
 
   let mkdirp: Fpath.t => unit =
     path => Dir.create(~path=true, ~mode=0o777, path) |> ignore;

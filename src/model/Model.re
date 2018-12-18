@@ -1,8 +1,8 @@
 type site = {
+  charset: string,
+  dir: Fpath.t,
   name: string,
   path: Fpath.t,
-  dir: Fpath.t,
-  charset: string,
 };
 
 type project = {

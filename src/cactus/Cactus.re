@@ -1,7 +1,7 @@
 let build = (_flags, project_root, output_dir, jobs) => {
   let began_at = Unix.gettimeofday();
-  let project_root = project_root |> Fpath.v;
-  let output_dir = output_dir |> Fpath.v;
+  let project_root = project_root |> Fpath.v |> Fpath.to_dir_path;
+  let output_dir = output_dir |> Fpath.v |> Fpath.to_dir_path;
 
   Logs.app(m => m({j|🌵 Compiling project... |j}));
 

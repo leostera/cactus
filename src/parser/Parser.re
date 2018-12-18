@@ -1,6 +1,9 @@
 module Errors = Errors;
 
 let read_project = (root, output_dir) => {
+  let root = root |> Fpath.to_dir_path |> Fpath.normalize;
+  let output_dir = output_dir |> Fpath.to_dir_path |> Fpath.normalize;
+
   let res =
     Model.project_filename
     |> Fpath.append(root)
