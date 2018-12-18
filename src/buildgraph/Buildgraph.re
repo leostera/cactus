@@ -16,49 +16,59 @@ let execute = (compiler, plan) => {
   open Lwt.Infix;
   let rec exec = (acc, p) =>
     switch (p) {
-    | Leaf(target) => Lwt.return([compiler(target), ...acc])
+    | Leaf(target) =>
+      Lwt.return([
+        compiler(target)
+        >>= (_ => Logs_lwt.debug(m => m("Compiled target: %s", target))),
+        ...acc,
+      ])
     | Node(target, ts) =>
       let (waiter, awakener) = Lwt.wait();
-      /*
-         list(Lwt.t(list(Lwt.t(unit))))
-         Lwt.t(list(Lwt.t(unit)))
-       */
       Lwt.async(() =>
         compiler(target)
+        >>= (_ => Logs_lwt.debug(m => m("Compiled Node target: %s", target)))
         >>= (
           _ =>
             ts
             |> List.map(exec(acc))
             |> Lwt_list.fold_left_s((a, b) => b >|= (c => c @ a), [])
+            >>= (
+              children =>
+                Logs_lwt.debug(m => m("Compiled target: %s", target))
+                >|= (_ => children)
+            )
             >|= Lwt.wakeup_later(awakener)
         )
       );
       waiter;
     };
-  exec([], plan) >>= Lwt.join;
+  Logs_lwt.debug(m => m("Executing build plan"))
+  >>= (_ => exec([], plan) >>= Lwt.join);
 };
 
-let execute_p = (~jobs, submit, compiler, plan) => {
-  let rec exec = (acc, p) =>
-    switch (p) {
-    | Leaf(target) => [target, ...acc]
-    | Node(target, children) =>
-      compiler(target);
-      children |> List.map(exec(acc)) |> List.concat;
+let execute_p = (submit, compiler, plan) => {
+  open Lwt.Infix;
+
+  let (first_target, children) =
+    switch (plan) {
+    | Leaf(target) => (target, [])
+    | Node(target, children) => (target, children)
     };
-  plan
-  |> exec([])
-  |> Base.L.buckets(jobs)
-  |> List.map(t =>
-       Lwt.(
-         Logs_lwt.debug(m =>
-           m("Submitting %d tasks to worker...", t |> List.length)
-         )
-         >>= (_ => submit(t))
-         |> Lwt.map(_ => ())
-       )
-     )
-  |> Lwt.join;
+
+  let submit_one = t => {
+    Logs.debug(m => m("Submitting %d tasks to worker...", t |> size));
+    submit(t)
+    >>= (
+      x =>
+        switch (x) {
+        | None => Logs_lwt.err(m => m("Error submitting task to worker."))
+        | Some(_) => Logs_lwt.debug(m => m("Tasks submitted successfully"))
+        }
+    );
+  };
+
+  compiler(first_target)
+  >>= (() => children |> List.map(submit_one) |> Lwt.join);
 };
 
 /* TODO(@ostera): rewrite to use fprintf instead */

@@ -23,16 +23,38 @@ let build = (_flags, project_root, output_dir, jobs) => {
 
     if (size > 50 && jobs > 0) {
       Logs.debug(m => m("Spinning up worker pool..."));
-      let (pool, _pool_done) = Nproc.create(jobs);
-      let _submit = Nproc.submit(pool, ~f=List.map(compile));
-      /*
-       Lwt.(
-         Buildgraph.execute_p(submit, compile, graph, ~jobs)
-         >>= (_ => Nproc.close(pool))
-         >>= (_ => pool_done)
-         |> Lwt_main.run
-       );
-       */
+      let (pool, pool_done) = Nproc.create(jobs);
+      let submit =
+        Nproc.submit(
+          pool,
+          ~f=plan => {
+            Logs.debug(m =>
+              m(
+                "Received build plan with %d targets",
+                plan |> Buildgraph.size,
+              )
+            );
+            Lwt.catch(
+              () => plan |> Buildgraph.execute(compile),
+              exn =>
+                Logs_lwt.err(m =>
+                  m(
+                    "Something went wrong in worker: %s",
+                    exn |> Printexc.to_string,
+                  )
+                ),
+            )
+            |> Lwt_main.run;
+            Logs.debug(m => m("Worker done."));
+          },
+        );
+      Lwt.(
+        Buildgraph.execute_p(submit, compile, graph)
+        >>= (_ => Logs_lwt.debug(m => m("Execution finished.")))
+        >>= (_ => Nproc.close(pool))
+        >>= (_ => pool_done)
+        |> Lwt_main.run
+      );
       Logs.debug(m => m("Finished parallel execution."));
     } else {
       Buildgraph.execute(compile, graph) |> Lwt_main.run;

@@ -78,25 +78,27 @@ module OS = {
   };
 
   let writefile: (Fpath.t, string) => unit =
-    (path, content) => File.write(~mode=0o777, path, content) |> ignore;
+    (path, content) => File.write(~mode=0o777, path, content) <|> ();
 
   let readfile: Fpath.t => string = path => File.read(path) <|> "";
 
-  let mkdirp: Fpath.t => unit =
-    path => Dir.create(~path=true, ~mode=0o777, path) |> ignore;
+  let mkdirp: Fpath.t => bool =
+    path => Dir.create(~path=true, ~mode=0o777, path) <|> false;
 
   module Async = {
+    open Lwt.Infix;
+
+    let mkdirp = path =>
+      Lwt.catch(() => Lwt_unix.mkdir(path, 0o0777), _ => Lwt.return_unit);
+
     let writefile = (path, contents) =>
       Lwt_io.with_file(~mode=Lwt_io.Output, path, chan =>
         Lwt_io.write(chan, contents)
       );
 
-    let concatall = (~init="", sep, str) =>
-      Lwt_stream.fold((a, b) => a ++ sep ++ b, str, init);
-
-    let readlines = chan => chan |> Lwt_io.read_lines |> concatall("\n");
-
     let readfile = path =>
-      Lwt_io.with_file(~mode=Lwt_io.Input, path, readlines);
+      Lwt_io.with_file(~mode=Lwt_io.Input, path, ch =>
+        ch |> Lwt_io.read_lines |> Lwt_stream.to_list >|= String.concat("\n")
+      );
   };
 };
