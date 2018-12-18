@@ -20,7 +20,7 @@ let rec execute = (compiler, plan) =>
     children |> List.iter(execute(compiler));
   };
 
-let execute_p = (submit, compiler, plan) => {
+let execute_p = (~jobs, submit, compiler, plan) => {
   let rec exec = (acc, p) =>
     switch (p) {
     | Leaf(target) => [target, ...acc]
@@ -30,8 +30,16 @@ let execute_p = (submit, compiler, plan) => {
     };
   plan
   |> exec([])
-  |> Base.L.bucket(~bucket_size=4)
-  |> List.map(t => submit(t) |> Lwt.map(_ => ()))
+  |> Base.L.buckets(jobs)
+  |> List.map(t =>
+       Lwt.(
+         Logs_lwt.debug(m =>
+           m("Submitting %d tasks to worker...", t |> List.length)
+         )
+         >>= (_ => submit(t))
+         |> Lwt.map(_ => ())
+       )
+     )
   |> Lwt.join;
 };
 

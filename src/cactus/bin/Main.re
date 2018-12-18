@@ -64,6 +64,11 @@ module Build = {
       );
     };
 
+    let job_count = {
+      let doc = "Amount of parallel jobs to run";
+      Arg.(value & opt(int, 4) & info(["j", "jobs"], ~docv="JOBS", ~doc));
+    };
+
     let doc = "build your project";
     let exits = Term.default_exits;
     let man = [
@@ -71,7 +76,7 @@ module Build = {
       `P(
         {j|Cactus will look for a cactus-project file in the \$ROOT folder
         (defaults to the current folder) and scan for site files to make a
-        build plan, and execute it.|j},
+        build plan, and execute it using $JOBS workers.|j},
       ),
       `P(
         {j|It will compile all of the markdown files it finds into .html
@@ -88,7 +93,11 @@ module Build = {
 
     (
       Term.(
-        const(Cactus.build) $ SharedOpts.flags $ project_root $ output_dir
+        const(Cactus.build)
+        $ SharedOpts.flags
+        $ project_root
+        $ output_dir
+        $ job_count
       ),
       Term.info("build", ~doc, ~sdocs=Manpage.s_common_options, ~exits, ~man),
     );

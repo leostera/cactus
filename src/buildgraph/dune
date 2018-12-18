@@ -1,3 +1,3 @@
 (library
   (name buildgraph)
-  (libraries lwt base))
+  (libraries lwt logs logs.lwt base))

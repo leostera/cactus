@@ -1,6 +1,9 @@
 module L = {
-  let bucket: (~bucket_size: int, list('a)) => list(list('a)) =
-    (~bucket_size, ls) => {
+  let buckets: (int, list('a)) => list(list('a)) =
+    (count, ls) => {
+      let len = ls |> List.length |> float_of_int;
+      let count = count |> float_of_int;
+      let size = len /. count |> ceil |> int_of_float;
       let rec part = (acc, n, l) =>
         switch (n, l) {
         | (0, _)
@@ -11,7 +14,7 @@ module L = {
         switch (l) {
         | [] => acc
         | xs =>
-          let (b, l') = part([], bucket_size, xs);
+          let (b, l') = part([], size, xs);
           buck([b, ...acc], l');
         };
       buck([], ls);

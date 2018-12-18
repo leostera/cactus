@@ -1,4 +1,4 @@
-let build = (_flags, project_root, output_dir) => {
+let build = (_flags, project_root, output_dir, jobs) => {
   let began_at = Unix.gettimeofday();
   let project_root = project_root |> Fpath.v;
   let output_dir = output_dir |> Fpath.v;
@@ -21,13 +21,12 @@ let build = (_flags, project_root, output_dir) => {
 
     let compile = Compiler.Exec.compile(project);
 
-    if (size > 50) {
+    if (size > 50 && jobs > 0) {
       Logs.debug(m => m("Spinning up worker pool..."));
-      let thread_count = 4;
-      let (pool, pool_done) = Nproc.create(thread_count);
+      let (pool, pool_done) = Nproc.create(jobs);
       let submit = Nproc.submit(pool, ~f=List.iter(compile));
       Lwt.(
-        Buildgraph.execute_p(submit, compile, graph)
+        Buildgraph.execute_p(submit, compile, graph, ~jobs)
         >>= (_ => Nproc.close(pool))
         >>= (_ => pool_done)
         |> Lwt_main.run
