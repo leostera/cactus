@@ -16,6 +16,7 @@ depends: [
   "ocamlgraph"
   "omd"
   "conf-libev"
+  "bos"
 
   "dune" {build}
   "reason" {build}

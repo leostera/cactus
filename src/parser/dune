@@ -3,4 +3,5 @@
   (libraries
     base
     model
+    bos
     parsexp))

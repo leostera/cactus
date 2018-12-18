@@ -27,32 +27,20 @@ module Result = {
 };
 
 module OS = {
-  let writefile = (path, contents) => {
-    let chan = open_out(path);
-    output_string(chan, contents);
-    flush(chan);
-    close_out(chan);
-  };
+  open Bos.OS;
+  module R = Rresult.R;
 
-  let readfile = path => {
-    let chan = open_in(path);
-    let rec read = acc =>
-      switch (chan |> input_line) {
-      | exception End_of_file => acc |> List.rev
-      | line => read([line, "\n", ...acc])
-      };
-    let content = read([]) |> List.fold_left((++), "");
-    close_in(chan);
-    content;
-  };
+  let isdir = path => Dir.exists(path) |> R.ignore_error(~use=_ => false);
 
-  let rec mkdirp = path =>
-    switch (Unix.stat(path)) {
-    | exception (Unix.Unix_error(Unix.ENOENT, "stat", _)) =>
-      let parent = Filename.dirname(path);
-      mkdirp(parent);
-      Unix.mkdir(path, 0o777);
-    | exception _ => ()
-    | _ => ()
-    };
+  let readdir = path =>
+    Dir.contents(~rel=true, path) |> R.ignore_error(~use=_ => []);
+
+  let writefile: (Fpath.t, string) => unit =
+    (path, content) => File.write(~mode=0o777, path, content) |> ignore;
+
+  let readfile: Fpath.t => string =
+    path => File.read(path) |> R.ignore_error(~use=_ => "");
+
+  let mkdirp: Fpath.t => unit =
+    path => Dir.create(~path=true, ~mode=0o777, path) |> ignore;
 };

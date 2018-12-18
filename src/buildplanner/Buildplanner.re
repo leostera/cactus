@@ -2,21 +2,21 @@ open Model;
 
 let find_sites = root => {
   let rec crawl = (sites, top) =>
-    if (top |> Sys.is_directory) {
+    if (top |> Base.OS.isdir) {
       let files =
-        switch (top |> Sys.readdir |> Array.to_list) {
+        switch (top |> Base.OS.readdir) {
         | [] => []
         | files =>
           List.concat([
             /* check if any of the current files are site files */
             files
-            |> List.filter(name => name == Model.site_filename)
-            |> List.map(Filename.concat(top))
-            |> List.filter(path => Sys.is_directory(path) == false)
+            |> List.filter(name => Fpath.equal(name, Model.site_filename))
+            |> List.map(Fpath.append(top))
+            |> List.filter(path => Base.OS.isdir(path) == false)
             |> List.map(Parser.read_site),
             /* keep crawling the file tree */
             files
-            |> List.map(Filename.concat(top))
+            |> List.map(Fpath.append(top))
             |> List.map(crawl([]))
             |> List.concat,
           ])
@@ -31,26 +31,20 @@ let find_sites = root => {
 
 let find_docs = site =>
   site.dir
-  |> Sys.readdir
-  |> Array.to_list
+  |> Base.OS.readdir
   |> List.filter(filename => {
-       let fullpath = Filename.concat(site.dir, filename);
-       let is_dir =
-         switch (fullpath |> Sys.is_directory) {
-         | res => res
-         | exception _ => false
-         };
-       ! is_dir;
+       let fullpath = Fpath.append(site.dir, filename);
+       ! (fullpath |> Base.OS.isdir);
      })
   |> List.filter(filename => {
-       let ext = filename |> Filename.extension;
+       let ext = filename |> Fpath.get_ext;
        ext == ".md";
      })
   |> List.map(filename => {
-       let output_name = Filename.remove_extension(filename) ++ ".html";
+       let output_name = filename |> Fpath.rem_ext |> Fpath.add_ext(".html");
        Compiler.Rules.{
-         input: Filename.concat(site.dir, filename),
-         output: Filename.concat(site.dir, output_name),
+         input: Fpath.append(site.dir, filename),
+         output: Fpath.append(site.dir, output_name),
        };
      });
 
@@ -62,7 +56,7 @@ let plan_build:
       project.root
       |> find_sites
       |> List.map(site => {
-           let fullpath = Filename.concat(project.output_dir, site.dir);
+           let fullpath = Fpath.append(project.output_dir, site.dir);
            Buildgraph.Node(
              `Create_dir(fullpath),
              site

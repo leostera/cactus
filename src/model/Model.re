@@ -1,16 +1,16 @@
 type site = {
   name: string,
-  path: string,
-  dir: string,
+  path: Fpath.t,
+  dir: Fpath.t,
   charset: string,
 };
 
 type project = {
-  root: string,
+  root: Fpath.t,
   name: string,
-  output_dir: string,
+  output_dir: Fpath.t,
 };
 
-let project_filename = "cactus-project";
+let project_filename = "cactus-project" |> Fpath.v;
 
-let site_filename = "site";
+let site_filename = "site" |> Fpath.v;
