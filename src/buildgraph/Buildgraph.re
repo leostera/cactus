@@ -20,18 +20,20 @@ let rec execute = (compiler, plan) =>
     children |> List.iter(execute(compiler));
   };
 
-let execute_p:
-  ('a => Lwt.t(option(unit)), 'a => unit, plan('a)) => Lwt.t(unit) =
-  (submit, compiler, plan) => {
-    let rec exec = (acc, p) =>
-      switch (p) {
-      | Leaf(target) => [submit(target), ...acc]
-      | Node(target, children) =>
-        compiler(target);
-        children |> List.map(exec(acc)) |> List.concat;
-      };
-    plan |> exec([]) |> List.map(Lwt.map(_ => ())) |> Lwt.join;
-  };
+let execute_p = (submit, compiler, plan) => {
+  let rec exec = (acc, p) =>
+    switch (p) {
+    | Leaf(target) => [target, ...acc]
+    | Node(target, children) =>
+      compiler(target);
+      children |> List.map(exec(acc)) |> List.concat;
+    };
+  plan
+  |> exec([])
+  |> Base.L.bucket(~bucket_size=4)
+  |> List.map(t => submit(t) |> Lwt.map(_ => ()))
+  |> Lwt.join;
+};
 
 /* TODO(@ostera): rewrite to use fprintf instead */
 let pp = (printer, graph) => {

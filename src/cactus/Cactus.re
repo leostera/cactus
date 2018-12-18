@@ -28,7 +28,7 @@ let build = (_flags, project_root, output_dir) => {
       Logs.debug(m => m("Spinning up worker pool..."));
       let thread_count = 4;
       let (pool, pool_done) = Nproc.create(thread_count);
-      let submit = Nproc.submit(pool, ~f=compile);
+      let submit = Nproc.submit(pool, ~f=List.iter(compile));
       Lwt.(
         Buildgraph.execute_p(submit, compile, graph)
         >>= (_ => Nproc.close(pool))

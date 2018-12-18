@@ -1,3 +1,22 @@
+module L = {
+  let bucket: (~bucket_size: int, list('a)) => list(list('a)) =
+    (~bucket_size, ls) => {
+      let rec part = (acc, n, l) =>
+        switch (n, l) {
+        | (0, _)
+        | (_, []) => (acc, l)
+        | (n, [x, ...xs]) => part([x, ...acc], n - 1, xs)
+        };
+      let rec buck = (acc, l) =>
+        switch (l) {
+        | [] => acc
+        | xs =>
+          let (b, l') = part([], bucket_size, xs);
+          buck([b, ...acc], l');
+        };
+      buck([], ls);
+    };
+};
 module Result = {
   let map: ('a => 'b, result('a, 'c)) => result('b, 'c) =
     (f, x) =>
