@@ -1,5 +1,7 @@
 open Cmdliner;
 
+let began_at = Unix.gettimeofday();
+
 type verbosity =
   | Quiet
   | Normal
@@ -93,7 +95,7 @@ module Build = {
 
     (
       Term.(
-        const(Cactus.build)
+        const(Cactus.build(began_at))
         $ SharedOpts.flags
         $ project_root
         $ output_dir

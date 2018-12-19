@@ -1,5 +1,4 @@
-let build = (_flags, project_root, output_dir, jobs) => {
-  let began_at = Unix.gettimeofday();
+let build = (began_at, _flags, project_root, output_dir, jobs) => {
   let project_root = project_root |> Fpath.v |> Fpath.to_dir_path;
   let output_dir = output_dir |> Fpath.v |> Fpath.to_dir_path;
 
