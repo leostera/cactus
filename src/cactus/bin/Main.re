@@ -113,7 +113,7 @@ let default_cmd = {
   let man = SharedOpts.help;
   (
     Term.(ret(const(`Help((`Pager, None))))),
-    Term.info("cactus", ~version="0.3", ~doc, ~sdocs, ~exits, ~man),
+    Term.info("cactus", ~version="0.4", ~doc, ~sdocs, ~exits, ~man),
   );
 };
 
