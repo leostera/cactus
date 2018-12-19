@@ -1,3 +1,6 @@
+module Parallel = Parallel;
+module Async = Async;
+
 type plan('target) =
   | Node('target, list(plan('target)))
   | Leaf('target);
@@ -62,31 +65,16 @@ let rec execute_async: ('a => Lwt.t(unit), plan('a)) => Lwt.t(unit) =
     >|= (_ => ());
   };
 
-let execute_p = (~jobs, compile, compile_async, plan, size) => {
+/*
+ // orchestrating the pool of workers and submitting work
+ // figuring out what work can be submitted where
+ */
+let execute_p = (~jobs, compile, spawn_pool, plan, size) => {
   open Lwt.Infix;
   let (root, buckets) = partition(jobs, plan);
   let worker_count = buckets |> List.length;
 
-  Logs.debug(m =>
-    m("Spinning up worker pool with %d workers...", worker_count)
-  );
-  let (pool, pool_done) = Nproc.create(worker_count);
-  let submit = work =>
-    work
-    |> Nproc.submit(pool, ~f=plans =>
-         plans
-         |> List.map(execute_async(compile_async))
-         |> Lwt.join
-         >>= (_ => Logs_lwt.debug(m => m("Task completed.")))
-         |> Lwt_main.run
-       )
-    >>= (
-      submission =>
-        switch (submission) {
-        | None => Logs_lwt.err(m => m("Failed to submit task"))
-        | Some () => Logs_lwt.debug(m => m("Task submitted!"))
-        }
-    );
+  let (submit, teardown) = spawn_pool(worker_count);
 
   compile(root);
   Logs.debug(m
@@ -94,13 +82,7 @@ let execute_p = (~jobs, compile, compile_async, plan, size) => {
        by one */
     => m("Submitting %d targets to %d workers", size - 1, worker_count));
 
-  Lwt.(
-    buckets
-    |> Lwt_list.map_p(submit)
-    >>= (_ => Nproc.close(pool))
-    >>= (_ => pool_done)
-    |> Lwt_main.run
-  );
+  buckets |> Lwt_list.map_p(submit) >>= teardown |> Lwt_main.run;
   Logs.debug(m => m("Finished parallel execution."));
 };
 

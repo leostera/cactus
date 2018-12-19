@@ -1,3 +1,9 @@
 (library
   (name buildgraph)
-  (libraries lwt logs logs.lwt base nproc))
+  (libraries
+   base
+   logs
+   logs.lwt
+   lwt
+   nproc
+   ))

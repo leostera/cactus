@@ -19,19 +19,17 @@ let build = (_flags, project_root, output_dir, jobs) => {
     let size = Buildgraph.size(graph);
     Logs.debug(m => m("About to process %d compilation units...", size));
 
-    /*
-     if (size > 50 && jobs > 0) {
-     */
-
     let compile = Compiler.Exec.compile(project);
-    let compile_async = Compiler.Exec.compile_async(project);
-    Buildgraph.execute_p(~jobs, compile, compile_async, graph, size);
-
-    /*
-     } else {
-       Buildgraph.execute(compile, graph);
-     };
-     */
+    let comp = Compiler.Exec.compile_async(project);
+    let exec = Buildgraph.execute_async(comp);
+    let compile_async = Lwt_list.map_p(exec);
+    if (jobs > 0) {
+      let spawn_pool = Buildgraph.Parallel.create(~f=compile_async);
+      Buildgraph.execute_p(~jobs, compile, spawn_pool, graph, size);
+    } else {
+      let spawn_in_process = Buildgraph.Async.create(~f=compile_async);
+      Buildgraph.execute_p(~jobs=1, compile, spawn_in_process, graph, size);
+    };
 
     Logs.debug(m => {
       let finished_at = Unix.gettimeofday();
