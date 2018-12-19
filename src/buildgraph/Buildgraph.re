@@ -12,6 +12,34 @@ let size = plan => {
   count(0, plan);
 };
 
+let partition: (int, plan('a)) => ('a, list(list(plan('a)))) =
+  (count, plan) => {
+    let (root, children) =
+      switch (plan) {
+      | Leaf(target) => (target, [])
+      | Node(target, children) => (target, children)
+      };
+
+    let rec paths: (list(plan('a)), plan('a)) => list(plan('a)) =
+      (acc, tree) =>
+        switch (tree) {
+        | Leaf(_) as leaf => [leaf, ...acc]
+        | Node(target, deps) =>
+          deps
+          |> List.map(paths(acc))
+          |> List.concat
+          |> List.map(leaf => Node(target, [leaf]))
+        };
+
+    let buckets =
+      children
+      |> List.map(paths([]))
+      |> List.concat
+      |> Base.L.buckets(count);
+
+    (root, buckets);
+  };
+
 let rec execute = (compiler, plan) =>
   switch (plan) {
   | Leaf(target) => compiler(target)
@@ -34,18 +62,24 @@ let rec execute_async: ('a => Lwt.t(unit), plan('a)) => Lwt.t(unit) =
     >|= (_ => ());
   };
 
-let execute_p = (~jobs, submit, compiler, plan) => {
+let execute_p = (~jobs, compile, compile_async, plan, size) => {
   open Lwt.Infix;
-  let (first_target, par_deps) =
-    switch (plan) {
-    | Leaf(target) => (target, [])
-    | Node(target, children) => (target, children)
-    };
+  let (root, buckets) = partition(jobs, plan);
+  let worker_count = buckets |> List.length;
 
-  compiler(first_target);
-
-  let submit' = x =>
-    submit(x)
+  Logs.debug(m =>
+    m("Spinning up worker pool with %d workers...", worker_count)
+  );
+  let (pool, pool_done) = Nproc.create(worker_count);
+  let submit = work =>
+    work
+    |> Nproc.submit(pool, ~f=plans =>
+         plans
+         |> List.map(execute_async(compile_async))
+         |> Lwt.join
+         >>= (_ => Logs_lwt.debug(m => m("Task completed.")))
+         |> Lwt_main.run
+       )
     >>= (
       submission =>
         switch (submission) {
@@ -54,16 +88,20 @@ let execute_p = (~jobs, submit, compiler, plan) => {
         }
     );
 
-  let buckets = par_deps |> Base.L.buckets(jobs);
-  Logs.debug(m =>
-    m(
-      "Submitting %d children targets to %d workers in %d buckets",
-      par_deps |> List.length,
-      jobs,
-      buckets |> List.length,
-    )
+  compile(root);
+  Logs.debug(m
+    /* we're not submitting the root of the tree, thus the size is decreased
+       by one */
+    => m("Submitting %d targets to %d workers", size - 1, worker_count));
+
+  Lwt.(
+    buckets
+    |> Lwt_list.map_p(submit)
+    >>= (_ => Nproc.close(pool))
+    >>= (_ => pool_done)
+    |> Lwt_main.run
   );
-  buckets |> Lwt_list.map_p(submit');
+  Logs.debug(m => m("Finished parallel execution."));
 };
 
 /* TODO(@ostera): rewrite to use fprintf instead */

@@ -19,29 +19,19 @@ let build = (_flags, project_root, output_dir, jobs) => {
     let size = Buildgraph.size(graph);
     Logs.debug(m => m("About to process %d compilation units...", size));
 
+    /*
+     if (size > 50 && jobs > 0) {
+     */
+
     let compile = Compiler.Exec.compile(project);
     let compile_async = Compiler.Exec.compile_async(project);
+    Buildgraph.execute_p(~jobs, compile, compile_async, graph, size);
 
-    if (size > 50 && jobs > 0) {
-      Logs.debug(m => m("Spinning up worker pool..."));
-      let (pool, pool_done) = Nproc.create(jobs);
-      let submit =
-        Nproc.submit(pool, ~f=plans =>
-          plans
-          |> List.map(Buildgraph.execute_async(compile_async))
-          |> Lwt.join
-          |> Lwt_main.run
-        );
-      Lwt.(
-        Buildgraph.execute_p(~jobs, submit, compile, graph)
-        >>= (_ => Nproc.close(pool))
-        >>= (_ => pool_done)
-        |> Lwt_main.run
-      );
-      Logs.debug(m => m("Finished parallel execution."));
-    } else {
-      Buildgraph.execute(compile, graph);
-    };
+    /*
+     } else {
+       Buildgraph.execute(compile, graph);
+     };
+     */
 
     Logs.debug(m => {
       let finished_at = Unix.gettimeofday();
