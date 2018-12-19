@@ -6,5 +6,9 @@
     markup
     omd
 
+    lwt
+    lwt.unix
+    unix
     logs
+    logs.lwt
     ))

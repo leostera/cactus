@@ -78,4 +78,21 @@ module OS = {
 
   let mkdirp: Fpath.t => unit =
     path => Dir.create(~path=true, ~mode=0o777, path) |> ignore;
+
+  module Async = {
+    open Lwt.Infix;
+
+    let mkdirp = path =>
+      Lwt.catch(() => Lwt_unix.mkdir(path, 0o0777), _ => Lwt.return_unit);
+
+    let writefile = (path, contents) =>
+      Lwt_io.with_file(~mode=Lwt_io.Output, path, chan =>
+        Lwt_io.write(chan, contents)
+      );
+
+    let readfile = path =>
+      Lwt_io.with_file(~mode=Lwt_io.Input, path, ch =>
+        ch |> Lwt_io.read_lines |> Lwt_stream.to_list >|= String.concat("\n")
+      );
+  };
 };

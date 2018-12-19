@@ -20,13 +20,15 @@ let build = (_flags, project_root, output_dir, jobs) => {
     Logs.debug(m => m("About to process %d compilation units...", size));
 
     let compile = Compiler.Exec.compile(project);
+    let compile_async = Compiler.Exec.compile_async(project);
 
     if (size > 50 && jobs > 0) {
       Logs.debug(m => m("Spinning up worker pool..."));
       let (pool, pool_done) = Nproc.create(jobs);
-      let submit = Nproc.submit(pool, ~f=List.iter(compile));
+      let submit =
+        Nproc.submit(pool, ~f=Buildgraph.execute_async(compile_async));
       Lwt.(
-        Buildgraph.execute_p(submit, compile, graph, ~jobs)
+        Buildgraph.execute_p(submit, compile, graph)
         >>= (_ => Nproc.close(pool))
         >>= (_ => pool_done)
         |> Lwt_main.run
