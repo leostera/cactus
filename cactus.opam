@@ -8,15 +8,16 @@ license: "MIT"
 homepage: "https//github.com/ostera/cactus"
 bug-reports: "https//github.com/ostera/cactus/issues"
 depends: [
+  "bos"
   "cmdliner"
+  "conf-libev"
   "fmt"
   "logs"
   "markup"
   "nproc"
   "ocamlgraph"
   "omd"
-  "conf-libev"
-  "bos"
+  "parsexp"
 
   "dune" {build}
   "reason" {build}

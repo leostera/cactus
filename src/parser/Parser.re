@@ -22,9 +22,34 @@ let read_project = (root, output_dir) => {
 /* TODO(@ostera): read path file, validate rules, and turn them into a
  * Model.site record */
 let read_site = path =>
-  Model.{
-    path,
-    dir: Fpath.parent(path),
-    name: Fpath.basename(path),
-    charset: "utf-8",
-  };
+  Rresult.(
+    path
+    |> Base.OS.readfile
+    |> Parsexp.Many.parse_string
+    >>| (
+      values =>
+        switch (values) {
+        | [
+            Sexplib0.Sexp.List([Atom("template"), Atom(template_name)]),
+            ..._xs,
+          ] =>
+          Logs.debug(m => m("Template file name: %s", template_name));
+          Some(template_name |> Fpath.v);
+        | _ => None
+        }
+    )
+    >>| (
+      template =>
+        Model.{
+          path,
+          dir: Fpath.parent(path),
+          name: Fpath.basename(path),
+          template,
+          charset: "utf-8",
+        }
+    )
+    |> R.error_to_msg(
+         ~pp_error=
+           Parsexp.Parse_error.report(~filename=path |> Fpath.to_string),
+       )
+  );

@@ -1,5 +1,6 @@
 type site = {
   charset: string,
+  template: option(Fpath.t),
   dir: Fpath.t,
   name: string,
   path: Fpath.t,
