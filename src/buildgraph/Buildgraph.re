@@ -52,10 +52,7 @@ let execute_p = (submit, compiler, plan) => {
       submission =>
         switch (submission) {
         | None => Logs_lwt.err(m => m("Failed to submit task"))
-        | Some(task) =>
-          Logs_lwt.debug(m => m("Submitted task"))
-          >>= (_ => task)
-          >>= (_ => Logs_lwt.debug(m => m("Task completed")))
+        | Some () => Logs_lwt.debug(m => m("Task completed"))
         }
     );
 
