@@ -12,13 +12,7 @@ let compile: (Fpath.t, compile_target) => unit =
       target.input
       |> Base.OS.readfile
       |> Omd.of_string
-      |> Omd.to_html
-      |> Markup.string
-      |> Markup.parse_html
-      |> Markup.signals
-      |> Markup.pretty_print
-      |> Markup.write_html
-      |> Markup.to_string
+      |> Omd.to_html(~pindent=true)
       |> Base.OS.writefile(final_out_path)
     ) {
     | exception _ => Logs.err(m => m("Something went wrong!"))
