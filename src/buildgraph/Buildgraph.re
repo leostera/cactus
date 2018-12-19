@@ -30,13 +30,11 @@ let rec execute_async: ('a => Lwt.t(unit), plan('a)) => Lwt.t(unit) =
       };
 
     compiler(first_target)
-    >>= (_ => Logs_lwt.debug(m => m("Async compiled target")))
-    >|= (_ => List.map(execute_async(compiler), par_deps))
-    >>= Lwt.join
-    >>= (_ => Logs_lwt.debug(m => m("Async compiled deps")));
+    >>= (_ => Lwt_list.map_p(execute_async(compiler), par_deps))
+    >|= (_ => ());
   };
 
-let execute_p = (submit, compiler, plan) => {
+let execute_p = (~jobs, submit, compiler, plan) => {
   open Lwt.Infix;
   let (first_target, par_deps) =
     switch (plan) {
@@ -52,12 +50,20 @@ let execute_p = (submit, compiler, plan) => {
       submission =>
         switch (submission) {
         | None => Logs_lwt.err(m => m("Failed to submit task"))
-        | Some () => Logs_lwt.debug(m => m("Task completed"))
+        | Some () => Logs_lwt.debug(m => m("Task submitted!"))
         }
     );
 
-  Logs.debug(m => m("Submitting %d targets", par_deps |> List.length));
-  par_deps |> List.map(submit') |> Lwt.join;
+  let buckets = par_deps |> Base.L.buckets(jobs);
+  Logs.debug(m =>
+    m(
+      "Submitting %d children targets to %d workers in %d buckets",
+      par_deps |> List.length,
+      jobs,
+      buckets |> List.length,
+    )
+  );
+  buckets |> Lwt_list.map_p(submit');
 };
 
 /* TODO(@ostera): rewrite to use fprintf instead */

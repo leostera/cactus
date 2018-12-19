@@ -1,23 +1,30 @@
 module L = {
+  let rec take = (acc, n, l) =>
+    switch (n, l) {
+    | (0, _)
+    | (_, []) => (acc, l)
+    | (n, [x, ...xs]) => take([x, ...acc], n - 1, xs)
+    };
+
   let buckets: (int, list('a)) => list(list('a)) =
     (count, ls) => {
       let len = ls |> List.length |> float_of_int;
-      let count = count |> float_of_int;
-      let size = len /. count |> ceil |> int_of_float;
-      let rec part = (acc, n, l) =>
-        switch (n, l) {
-        | (0, _)
-        | (_, []) => (acc, l)
-        | (n, [x, ...xs]) => part([x, ...acc], n - 1, xs)
+      let count' = count |> float_of_int;
+      let _size = len /. count' |> ceil |> int_of_float;
+
+      let arrs = Array.make(count, []);
+
+      let rec consume = (i, xs) =>
+        switch (xs) {
+        | [] => ()
+        | [x, ...xs'] =>
+          let next_i = i > count ? 0 : i;
+          arrs[i] = [x, ...arrs[i]];
+          consume(next_i, xs');
         };
-      let rec buck = (acc, l) =>
-        switch (l) {
-        | [] => acc
-        | xs =>
-          let (b, l') = part([], size, xs);
-          buck([b, ...acc], l');
-        };
-      buck([], ls);
+      consume(0, ls);
+
+      arrs |> Array.to_list;
     };
 };
 module Result = {
@@ -82,8 +89,26 @@ module OS = {
   module Async = {
     open Lwt.Infix;
 
-    let mkdirp = path =>
-      Lwt.catch(() => Lwt_unix.mkdir(path, 0o0777), _ => Lwt.return_unit);
+    let rec mkdirp = path =>
+      Lwt.catch(
+        () => path |> Lwt_unix.stat >>= (_ => Lwt.return_unit),
+        _ => {
+          let parent =
+            path
+            |> Fpath.v
+            |> Fpath.to_dir_path
+            |> Fpath.parent
+            |> Fpath.to_string;
+          mkdirp(parent)
+          >>= (
+            _ =>
+              Lwt.catch(
+                () => Lwt_unix.mkdir(path, 0o0777),
+                _ => Lwt.return_unit,
+              )
+          );
+        },
+      );
 
     let writefile = (path, contents) =>
       Lwt_io.with_file(~mode=Lwt_io.Output, path, chan =>
