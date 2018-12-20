@@ -124,3 +124,18 @@ Voila! That's all it takes to get the templating up and running. It's very basic
 at the moment, but it'll get you quite far! The next step is to provide better
 support for building pages with arbitrary logic, possibly by letting you specify
 a module to be used for processing each file.
+
+### Assets
+
+To copy assets (any supporting file to your site) you can use the `(assets
+...)` rule:
+
+```lisp
+(assets
+  style.css
+  logo.svg
+  bg_music.midi)
+```
+
+And they will be automatically copied from their location, relative to the
+`site` file.
