@@ -21,13 +21,6 @@ module L = {
     };
 };
 module Result = {
-  let map: ('a => 'b, result('a, 'c)) => result('b, 'c) =
-    (f, x) =>
-      switch (x) {
-      | Ok(value) => Ok(f(value))
-      | error => error
-      };
-
   let sequence: list(result('a, 'b)) => result(list('a), list('b)) =
     rs => {
       let rec seq = (rs, oks, errs) =>
@@ -42,10 +35,14 @@ module Result = {
       | _ => Error(errs)
       };
     };
+};
 
-  module Infix = {
-    let (>>=) = (x, f) => map(f, x);
-  };
+module Option = {
+  let (>>|) = (value, f) =>
+    switch (value) {
+    | Some(value) => Some(f(value))
+    | None => None
+    };
 };
 
 module OS = {

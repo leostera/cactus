@@ -10,8 +10,13 @@ let find_sites = (~output_dir, root) => {
 
       let sitefile = Fpath.append(top, Model.site_filename);
       let site_compilation_unit =
-        switch (Base.OS.exists(sitefile)) {
-        | true =>
+        switch (Base.OS.exists(sitefile), Parser.read_site(sitefile)) {
+        | (true, Error(`Msg(msg))) =>
+          Logs.err(m =>
+            m("Error parsing %s: %s", sitefile |> Fpath.to_string, msg)
+          );
+          None;
+        | (true, Ok(site)) =>
           Logs.debug(m =>
             m("Found site file at %s", sitefile |> Fpath.to_string)
           );
@@ -24,9 +29,12 @@ let find_sites = (~output_dir, root) => {
             m("Found %d docs", docs |> List.length);
           });
 
-          /* check if any of the current files are site files */
-          let site = Parser.read_site(sitefile);
           let fullpath = Fpath.append(output_dir, site.dir);
+          let template =
+            Base.Option.(
+              site.template
+              >>| (path => path |> Fpath.append(site.dir) |> Base.OS.readfile)
+            );
 
           /* create a buildgraph node */
           Some(
@@ -38,7 +46,21 @@ let find_sites = (~output_dir, root) => {
                      filename |> Fpath.rem_ext |> Fpath.add_ext(".html");
                    let cunit =
                      Compiler.Rules.{input: filename, output: output_name};
-                   Buildgraph.Leaf(`Compile(cunit));
+                   let compile_cunit = `Compile(cunit);
+                   switch (template) {
+                   | None => Buildgraph.Leaf(compile_cunit)
+                   | Some(template_contents) =>
+                     let template_cunit =
+                       Compiler.Rules.{
+                         input: Fpath.append(output_dir, cunit.output),
+                         output: cunit.output,
+                         template: template_contents,
+                       };
+                     Buildgraph.Node(
+                       compile_cunit,
+                       [Buildgraph.Leaf(`Template(template_cunit))],
+                     );
+                   };
                  }),
             ),
           );

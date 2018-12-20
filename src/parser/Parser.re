@@ -19,12 +19,4 @@ let read_project = (root, output_dir) => {
   };
 };
 
-/* TODO(@ostera): read path file, validate rules, and turn them into a
- * Model.site record */
-let read_site = path =>
-  Model.{
-    path,
-    dir: Fpath.parent(path),
-    name: Fpath.basename(path),
-    charset: "utf-8",
-  };
+let read_site = path => path |> Base.OS.readfile |> Site.parse(path);
