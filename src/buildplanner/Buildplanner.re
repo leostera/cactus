@@ -52,7 +52,7 @@ let find_sites = (~output_dir, root) => {
                    | Some(template_contents) =>
                      let template_cunit =
                        Compiler.Rules.{
-                         input: cunit.output,
+                         input: Fpath.append(output_dir, cunit.output),
                          output: cunit.output,
                          template: template_contents,
                        };

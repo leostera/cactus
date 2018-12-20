@@ -18,10 +18,9 @@ type compilation_unit = [
 let template: (Fpath.t, template_target) => unit =
   (output_dir, target) => {
     let abs_out_path = Fpath.append(output_dir, target.output);
-    let abs_in_path = Fpath.append(output_dir, target.input);
     let run_template = Str.(replace_first(regexp("{| document |}")));
     switch (
-      abs_in_path
+      target.input
       |> Base.OS.readfile
       |> (doc => run_template(doc, target.template))
       |> Base.OS.writefile(abs_out_path)

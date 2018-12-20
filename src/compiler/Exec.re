@@ -21,7 +21,7 @@ let compile: (Model.project, Rules.compilation_unit) => unit =
         Fpath.(
           m(
             "Template: %s => %s",
-            append(project.output_dir, target.input) |> to_string,
+            target.input |> to_string,
             append(project.output_dir, target.output) |> to_string,
           )
         )
