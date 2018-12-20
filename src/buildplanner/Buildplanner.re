@@ -10,6 +10,7 @@ let find_sites = (~output_dir, root) => {
 
       let sitefile = Fpath.append(top, Model.site_filename);
       let site_compilation_unit =
+        /* TODO(@ostera): shouldn't we check if it exists __first__ ? */
         switch (Base.OS.exists(sitefile), Parser.read_site(sitefile)) {
         | (true, Error(`Msg(msg))) =>
           Logs.err(m =>
@@ -40,28 +41,52 @@ let find_sites = (~output_dir, root) => {
           Some(
             Buildgraph.Node(
               `Create_dir(fullpath),
-              docs
-              |> List.map(filename => {
-                   let output_name =
-                     filename |> Fpath.rem_ext |> Fpath.add_ext(".html");
-                   let cunit =
-                     Compiler.Rules.{input: filename, output: output_name};
-                   let compile_cunit = `Compile(cunit);
-                   switch (template) {
-                   | None => Buildgraph.Leaf(compile_cunit)
-                   | Some(template_contents) =>
-                     let template_cunit =
-                       Compiler.Rules.{
-                         input: Fpath.append(output_dir, cunit.output),
-                         output: cunit.output,
-                         template: template_contents,
-                       };
-                     Buildgraph.Node(
-                       compile_cunit,
-                       [Buildgraph.Leaf(`Template(template_cunit))],
-                     );
-                   };
-                 }),
+              [
+                switch (site.assets) {
+                | None => []
+                | Some(assets) =>
+                  assets
+                  |> List.fold_left(
+                       (acc, asset) => {
+                         let full_src_path = asset |> Fpath.append(site.dir);
+                         switch (full_src_path |> Base.OS.exists) {
+                         | true =>
+                           let cunit =
+                             Compiler.Rules.{
+                               src: asset |> Fpath.append(site.dir),
+                               dst: asset |> Fpath.append(fullpath),
+                             };
+                           [Buildgraph.Leaf(`Copy(cunit)), ...acc];
+                         | _ => acc
+                         };
+                       },
+                       [],
+                     )
+                },
+                docs
+                |> List.map(filename => {
+                     let output_name =
+                       filename |> Fpath.rem_ext |> Fpath.add_ext(".html");
+                     let cunit =
+                       Compiler.Rules.{input: filename, output: output_name};
+                     let compile_cunit = `Compile(cunit);
+                     switch (template) {
+                     | None => Buildgraph.Leaf(compile_cunit)
+                     | Some(template_contents) =>
+                       let template_cunit =
+                         Compiler.Rules.{
+                           input: Fpath.append(output_dir, cunit.output),
+                           output: cunit.output,
+                           template: template_contents,
+                         };
+                       Buildgraph.Node(
+                         compile_cunit,
+                         [Buildgraph.Leaf(`Template(template_cunit))],
+                       );
+                     };
+                   }),
+              ]
+              |> List.concat,
             ),
           );
         | _ => None
