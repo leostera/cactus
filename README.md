@@ -88,3 +88,39 @@ my/website  λ tree
 
 Which you can readily serve however you feel like. Upload to S3, Now, GCS,
 Github pages, or pretty much wherever.
+
+When in doubt, check out the `example` folder. All of the features will be
+showcased there.
+
+### Templating
+
+You'll quickly notice that the bare compilation from Markdown to HTML doesn't
+quite fit all use-cases. To alleviate this `cactus` lets you specify in your
+`site` file a template file to be used for all the Markdown files within that
+specific site.
+
+Say you wanted to wrap all of the pages from the example above in a common
+markup: add a `<meta charset="utf-8">` to all of them. You'd write a template
+file:
+
+```html
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    {| document |}
+  </body>
+</html>
+```
+
+And in your `site` file you'd point to it:
+
+```lisp
+(template "path/to/template.html")
+```
+
+Voila! That's all it takes to get the templating up and running. It's very basic
+at the moment, but it'll get you quite far! The next step is to provide better
+support for building pages with arbitrary logic, possibly by letting you specify
+a module to be used for processing each file.
