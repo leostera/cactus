@@ -9,11 +9,25 @@ type compile_target = {
   output: Fpath.t,
 };
 
+type copy_target = {
+  src: Fpath.t,
+  dst: Fpath.t,
+};
+
 type compilation_unit = [
   | `Create_dir(Fpath.t)
   | `Compile(compile_target)
   | `Template(template_target)
+  | `Copy(copy_target)
 ];
+
+let cp = target =>
+  Base.OS.(
+    switch (target.src |> readfile |> writefile(target.dst)) {
+    | exception _ => Logs.err(m => m("Something went wrong!"))
+    | _ => ()
+    }
+  );
 
 let template: (Fpath.t, template_target) => unit =
   (output_dir, target) => {

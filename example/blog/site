@@ -1,1 +1,2 @@
 (template "../templates/blog-post.html")
+(assets style.css)
