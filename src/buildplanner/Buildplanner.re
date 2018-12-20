@@ -45,12 +45,22 @@ let find_sites = (~output_dir, root) => {
                    let output_name =
                      filename |> Fpath.rem_ext |> Fpath.add_ext(".html");
                    let cunit =
-                     Compiler.Rules.{
-                       input: filename,
-                       output: output_name,
-                       template,
-                     };
-                   Buildgraph.Leaf(`Compile(cunit));
+                     Compiler.Rules.{input: filename, output: output_name};
+                   let compile_cunit = `Compile(cunit);
+                   switch (template) {
+                   | None => Buildgraph.Leaf(compile_cunit)
+                   | Some(template_contents) =>
+                     let template_cunit =
+                       Compiler.Rules.{
+                         input: cunit.output,
+                         output: cunit.output,
+                         template: template_contents,
+                       };
+                     Buildgraph.Node(
+                       compile_cunit,
+                       [Buildgraph.Leaf(`Template(template_cunit))],
+                     );
+                   };
                  }),
             ),
           );

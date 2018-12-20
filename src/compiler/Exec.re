@@ -15,4 +15,15 @@ let compile: (Model.project, Rules.compilation_unit) => unit =
           )
         )
       );
+    | `Template(target) =>
+      Rules.template(project.output_dir, target);
+      Logs.info(m =>
+        Fpath.(
+          m(
+            "Template: %s => %s",
+            append(project.output_dir, target.input) |> to_string,
+            append(project.output_dir, target.output) |> to_string,
+          )
+        )
+      );
     };

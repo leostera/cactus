@@ -1,10 +1,35 @@
+type template_target = {
+  input: Fpath.t,
+  output: Fpath.t,
+  template: string,
+};
+
 type compile_target = {
   input: Fpath.t,
   output: Fpath.t,
-  template: option(string),
 };
 
-type compilation_unit = [ | `Create_dir(Fpath.t) | `Compile(compile_target)];
+type compilation_unit = [
+  | `Create_dir(Fpath.t)
+  | `Compile(compile_target)
+  | `Template(template_target)
+];
+
+let template: (Fpath.t, template_target) => unit =
+  (output_dir, target) => {
+    let abs_out_path = Fpath.append(output_dir, target.output);
+    let abs_in_path = Fpath.append(output_dir, target.input);
+    let run_template = Str.(replace_first(regexp("{| document |}")));
+    switch (
+      abs_in_path
+      |> Base.OS.readfile
+      |> (doc => run_template(doc, target.template))
+      |> Base.OS.writefile(abs_out_path)
+    ) {
+    | exception _ => Logs.err(m => m("Something went wrong!"))
+    | _ => ()
+    };
+  };
 
 let compile: (Fpath.t, compile_target) => unit =
   (output_dir, target) => {
@@ -14,13 +39,6 @@ let compile: (Fpath.t, compile_target) => unit =
       |> Base.OS.readfile
       |> Omd.of_string
       |> Omd.to_html(~pindent=true)
-      |> (
-        doc =>
-          switch (target.template) {
-          | Some(t) => Str.(replace_first(regexp("{| document |}"), doc, t))
-          | _ => doc
-          }
-      )
       |> Base.OS.writefile(final_out_path)
     ) {
     | exception _ => Logs.err(m => m("Something went wrong!"))
@@ -37,7 +55,8 @@ let pp = rule =>
     | `Create_dir(name) =>
       print_string("mkdir " ++ name);
       print_newline();
-    | `Compile({input, output, _}) =>
+    | `Compile({input, output, _})
+    | `Template({input, output, _}) =>
       print_string(
         Fpath.to_string(input) ++ " => " ++ Fpath.to_string(output),
       );
