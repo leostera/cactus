@@ -69,10 +69,10 @@ module OS = {
   };
 
   let writefile: (Fpath.t, string) => unit =
-    (path, content) => File.write(~mode=0o644, path, content) |> ignore;
+    (path, content) => File.write(path, content) |> ignore;
 
   let readfile: Fpath.t => string = path => File.read(path) <|> "";
 
   let mkdirp: Fpath.t => unit =
-    path => Dir.create(~path=true, ~mode=0o644, path) |> ignore;
+    path => Dir.create(~path=true, path) |> ignore;
 };
