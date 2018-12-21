@@ -1,6 +1,6 @@
 opam-version: "2.0"
 name: "cactus"
-version: "0.6"
+version: "0.7"
 synopsis: "A document compiler"
 maintainer: "Leandro Ostera <leandro@ostera.io>"
 authors: "Leandro Ostera <leandro@ostera.io>"
