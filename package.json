@@ -6,7 +6,7 @@
   "bugs": { "url": "https://github.com/ostera/cactus/issues" },
   "homepage": "https://github.com/ostera/cactus",
   "license": "MIT",
-  "version": "0.7",
+  "version": "0.8",
   "esy": {
     "build": "refmterr dune build",
     "release": { "bin": [ "cactus" ] }
