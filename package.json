@@ -1,0 +1,39 @@
+{
+  "name": "cactus",
+  "description": "A document compiler",
+  "author": "Leandro Ostera <leandro@ostera.io>",
+  "repository": "https://github.com/ostera/cactus",
+  "bugs": { "url": "https://github.com/ostera/cactus/issues" },
+  "homepage": "https://github.com/ostera/cactus",
+  "license": "MIT",
+  "version": "0.7",
+  "esy": {
+    "build": "refmterr dune build",
+    "release": { "bin": [ "cactus" ] }
+  },
+  "scripts": { "test": "esy x cactus" },
+  "dependencies": {
+    "@esy-ocaml/reason": "*",
+    "@opam/bos": "0.2.0",
+    "@opam/cmdliner": "1.0.3",
+    "@opam/conf-libev": "4-11",
+    "@opam/dune": "*",
+    "@opam/fmt": "0.8.5",
+    "@opam/logs": "0.6.2",
+    "@opam/markup": "0.8.0",
+    "@opam/nproc": "0.5.1",
+    "@opam/ocamlgraph": "1.8.8",
+    "@opam/omd": "*",
+    "@opam/parsexp": "v0.11.0",
+    "ocaml": "~4.7.0"
+  },
+  "resolutions": {
+    "@opam/cmdliner": "1.0.2",
+    "@opam/omd": "ocaml/omd:omd.opam#fd7fa4e"
+  },
+  "devDependencies": {
+    "@opam/merlin": "*",
+    "ocaml": "~4.7.0",
+    "refmterr": "*"
+  }
+}
