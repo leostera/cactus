@@ -127,3 +127,6 @@ To copy assets (any supporting file to your site) you can use the `(assets
 
 And they will be automatically copied from their location, relative to the
 `site` file.
+
+You can also use the shorthand `.` instead of listing your assets to have all
+the files in the folder copied over. This is not recursive.
