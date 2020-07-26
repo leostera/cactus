@@ -21,13 +21,18 @@ type compilation_unit = [
   | `Copy(copy_target)
 ];
 
-let cp = target =>
-  Base.OS.(
-    switch (target.src |> readfile |> writefile(target.dst)) {
-    | exception _ => Logs.err(m => m("Something went wrong!"))
-    | _ => ()
-    }
-  );
+let cp = target => {
+  Logs.info(m => m("Copying: %s", target.src |> Fpath.to_string));
+  let copy_one = t =>
+    Base.OS.(
+      switch (t.src |> readfile |> writefile(t.dst)) {
+      | exception _ => Logs.err(m => m("Something went wrong!"))
+      | _ => ()
+      }
+    );
+
+  copy_one(target);
+};
 
 let template: (Fpath.t, template_target) => unit =
   (output_dir, target) => {

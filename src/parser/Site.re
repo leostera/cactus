@@ -14,6 +14,7 @@ let read_rules = sexp => {
   let rec find_assets = values =>
     switch (values) {
     | [] => None
+    | [List([Atom("assets"), Atom(".")]), ..._xs] => Some([Fpath.v(".")])
     | [List([Atom("assets"), ...assets]), ..._xs] =>
       let assets =
         assets

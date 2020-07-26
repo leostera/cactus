@@ -6,25 +6,13 @@ up, you'll find it's full of water.
 
 ### Installing
 
-`cactus` requires a working OCaml toolchain with opam. If you have it, you can
-just pin the repository:
+`cactus` builds with Esy just fine. Make sure to have `libev-dev` installed tho!
 
 ```sh
-opam pin --dev omd
-opam pin add cactus https://github.com/ostera/cactus.git
+esy
+esy build
+esy x cactus
 ```
-
-If you'd rather run from source you can also `git clone` and `make install`:
-
-```sh
-opam pin --dev omd
-git clone https://github.com/ostera/cactus path/to/projects
-cd path/to/projects
-make install
-```
-
-Worht noting that `make install` just calls `dune install`.
-
 
 ## Getting Started
 

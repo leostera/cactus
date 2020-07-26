@@ -4,7 +4,7 @@ let find_sites = (~output_dir, root) => {
   let rec crawl = (sites, top) => {
     let is_dir = top |> Fpath.is_dir_path;
     let is_output_dir = Fpath.equal(output_dir, top);
-    if (! is_output_dir && is_dir) {
+    if (!is_output_dir && is_dir) {
       let (`Dirs(dirs), `Files(files)) =
         top |> Base.OS.readdir(~rel=false) |> Base.OS.splitdir;
 
@@ -46,6 +46,28 @@ let find_sites = (~output_dir, root) => {
                 | None => []
                 | Some(assets) =>
                   assets
+                  |> List.map(asset =>
+                       switch (asset |> Fpath.to_string) {
+                       | "." =>
+                         let (`Dirs(_), `Files(assets)) =
+                           asset
+                           |> Fpath.append(site.dir)
+                           |> Base.OS.readdir(~rel=true)
+                           |> Base.OS.splitdir;
+                         Logs.info(m =>
+                           m(
+                             "Found assets: %s",
+                             assets
+                             |> List.map(Fpath.to_string)
+                             |> String.concat(", "),
+                           )
+                         );
+
+                         assets;
+                       | _ => [asset]
+                       }
+                     )
+                  |> List.flatten
                   |> List.fold_left(
                        (acc, asset) => {
                          let full_src_path = asset |> Fpath.append(site.dir);

@@ -1,11 +1,11 @@
 lib: [
-  "/Users/ostera/.esy/3__________________________________________________________________/b/cactus-f1123225/install/default/lib/cactus/META" {"META"}
-  "/Users/ostera/.esy/3__________________________________________________________________/b/cactus-f1123225/install/default/lib/cactus/dune-package" {"dune-package"}
-  "/Users/ostera/.esy/3__________________________________________________________________/b/cactus-f1123225/install/default/lib/cactus/opam" {"opam"}
+  "/home/ostera/repos/github.com/ostera/cactus/_esy/default/store/b/cactus-59fb1e15/install/default/lib/cactus/META" {"META"}
+  "/home/ostera/repos/github.com/ostera/cactus/_esy/default/store/b/cactus-59fb1e15/install/default/lib/cactus/dune-package" {"dune-package"}
+  "/home/ostera/repos/github.com/ostera/cactus/_esy/default/store/b/cactus-59fb1e15/install/default/lib/cactus/opam" {"opam"}
 ]
 bin: [
-  "/Users/ostera/.esy/3__________________________________________________________________/b/cactus-f1123225/install/default/bin/cactus" {"cactus"}
+  "/home/ostera/repos/github.com/ostera/cactus/_esy/default/store/b/cactus-59fb1e15/install/default/bin/cactus" {"cactus"}
 ]
 doc: [
-  "/Users/ostera/.esy/3__________________________________________________________________/b/cactus-f1123225/install/default/doc/cactus/README.md"
+  "/home/ostera/repos/github.com/ostera/cactus/_esy/default/store/b/cactus-59fb1e15/install/default/doc/cactus/README.md"
 ]
